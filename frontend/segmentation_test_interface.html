@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Vision Transport - Segmentation API Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success: linear-gradient(135deg, #754ffe 0%, #c300fe 100%);
+            --warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --danger: linear-gradient(135deg, #ff8a80 0%, #ff5722 100%);
+            --dark: #1a1a2e;
+            --light: #ffffff;
+            --glass: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(88, 31, 135, 0.37);
+            --border: 1px solid rgba(244, 164, 255, 0.274);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #667eea 100%);
+            min-height: 100vh;
+            color: var(--light);
+            overflow-x: hidden;
+        }
+
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f0f0f 0%, #140416 50%, #0a070c 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            z-index: -2;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 253, 152, 0.096);
+            border-radius: 100%;
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideInDown 1s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #f0f8ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: var(--border);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            transition: all 0.3s ease;
+            animation: slideInUp 1s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(93, 31, 135, 0.5);
+        }
+
+        .upload-section {
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            padding: 3rem 2rem;
+            margin: 1rem 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .upload-area.dragover {
+            border-color: #4facfe;
+            background: rgba(79, 172, 254, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .model-selector {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+
+        .model-btn {
+            background: var(--glass);
+            border: var(--border);
+            color: var(--light);
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .model-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .model-btn.active {
+            background: var(--success);
+            border-color: transparent;
+        }
+
+        .model-btn.unavailable {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .model-btn.unavailable:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: none;
+        }
+
+        .predict-btn {
+            background: var(--secondary);
+            border: none;
+            color: var(--light);
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .predict-btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .results-section {
+            position: relative;
+        }
+
+        .image-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 15px;
+        }
+
+        .overlay-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .overlay-btn {
+            background: var(--glass);
+            border: var(--border);
+            color: var(--light);
+            padding: 0.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .overlay-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .overlay-btn.active {
+            background: var(--success);
+            border-color: transparent;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: var(--glass);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            border: var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: var(--success);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-left: 4px solid var(--light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: var(--danger);
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .success-message {
+            background: var(--success);
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background-image: linear-gradient(
+                -45deg,
+                rgba(255, 255, 255, 0.2) 25%,
+                transparent 25%,
+                transparent 50%,
+                rgba(255, 255, 255, 0.2) 50%,
+                rgba(255, 255, 255, 0.2) 75%,
+                transparent 75%,
+                transparent
+            );
+            background-size: 30px 30px;
+            animation: moveStripes 1s linear infinite;
+        }
+
+        @keyframes moveStripes {
+            0% { background-position: 0 0; }
+            100% { background-position: 30px 0; }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .model-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <header class="header">
+            <h1>🚗 Future Vision Transport</h1>
+            <p>State-of-the-Art Autonomous Vehicle Image Segmentation</p>
+        </header>
+
+        <div class="main-grid">
+            <!-- Upload Section -->
+            <div class="glass-card upload-section">
+                <h2>📸 Upload Image</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">☁️</div>
+                    <p>Drag & drop your image here or click to browse</p>
+                    <small>Supports JPG, PNG, WebP</small>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                
+                <h3>🤖 Select Model</h3>
+                <div class="model-selector">
+                    <button class="model-btn active" data-model="unet_mini">UNet Mini (Fast)</button>
+                    <button class="model-btn" data-model="vgg16_unet">VGG16 UNet (Accurate)</button>
+                </div>
+                
+                <button class="predict-btn" id="predictBtn" disabled>
+                    🚀 Run Segmentation
+                </button>
+                
+                <div class="progress-bar hidden" id="progressBar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="glass-card results-section">
+                <h2>🎯 Segmentation Results</h2>
+                <div class="image-container" id="imageContainer" style="margin-top: 1rem;">
+                    <p>Upload an image to see segmentation results</p>
+                </div>
+                
+                <div class="overlay-controls hidden" id="overlayControls">
+                    <button class="overlay-btn" id="showOriginal" title="Show Original">🖼️</button>
+                    <button class="overlay-btn" id="showOverlay" title="Show Overlay">🎨</button>
+                    <button class="overlay-btn" id="showMask" title="Show Pure Mask">🎭</button>
+                    <button class="overlay-btn" id="downloadResult" title="Download Result">💾</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="glass-card">
+            <h2>📊 Performance Metrics</h2>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <div class="stat-value" id="inferenceTime">-</div>
+                    <div class="stat-label">Inference Time (ms)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="confidence">-</div>
+                    <div class="stat-label">Avg Confidence</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="modelParams">-</div>
+                    <div class="stat-label">Model Parameters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="imageSize">-</div>
+                    <div class="stat-label">Image Size</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Status -->
+        <div class="glass-card" style="margin-top: 2rem;">
+            <h2>🔧 API Status</h2>
+            <div id="apiStatus">Checking API connection...</div>
+        </div>
+    </div>
+
+    <script>
+        class SegmentationInterface {
+            constructor() {
+                this.apiUrl = 'http://localhost:8000';
+                this.selectedModel = 'unet_mini';
+                this.selectedFile = null;
+                this.overlayVisible = true;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+                this.createParticles();
+                this.checkApiStatus();
+            }
+
+            initializeElements() {
+                this.uploadArea = document.getElementById('uploadArea');
+                this.fileInput = document.getElementById('fileInput');
+                this.predictBtn = document.getElementById('predictBtn');
+                this.progressBar = document.getElementById('progressBar');
+                this.progressFill = document.getElementById('progressFill');
+                this.imageContainer = document.getElementById('imageContainer');
+                this.overlayControls = document.getElementById('overlayControls');
+                this.statsGrid = document.getElementById('statsGrid');
+                this.apiStatus = document.getElementById('apiStatus');
+            }
+
+            setupEventListeners() {
+                // Upload area events
+                this.uploadArea.addEventListener('click', () => this.fileInput.click());
+                this.uploadArea.addEventListener('dragover', this.handleDragOver.bind(this));
+                this.uploadArea.addEventListener('dragleave', this.handleDragLeave.bind(this));
+                this.uploadArea.addEventListener('drop', this.handleDrop.bind(this));
+                
+                // File input
+                this.fileInput.addEventListener('change', this.handleFileSelect.bind(this));
+                
+                // Model selection
+                document.querySelectorAll('.model-btn').forEach(btn => {
+                    btn.addEventListener('click', this.selectModel.bind(this));
+                });
+                
+                // Predict button
+                this.predictBtn.addEventListener('click', this.runPrediction.bind(this));
+                
+                // Overlay controls
+                document.getElementById('showOriginal').addEventListener('click', () => this.switchView('original'));
+                document.getElementById('showOverlay').addEventListener('click', () => this.switchView('overlay'));
+                document.getElementById('showMask').addEventListener('click', () => this.switchView('mask'));
+                document.getElementById('downloadResult').addEventListener('click', this.downloadResult.bind(this));
+            }
+
+            createParticles() {
+                const particles = document.getElementById('particles');
+                for (let i = 0; i < 50; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.width = particle.style.height = Math.random() * 4 + 2 + 'px';
+                    particle.style.animationDelay = Math.random() * 20 + 's';
+                    particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                    particles.appendChild(particle);
+                }
+            }
+
+            async checkApiStatus() {
+                try {
+                    const response = await fetch(`${this.apiUrl}/health`);
+                    const data = await response.json();
+                    
+                    if (data.status === 'healthy') {
+                        this.apiStatus.innerHTML = `
+                            <div class="success-message">
+                                ✅ API Connected - ${data.models_loaded} models loaded<br>
+                                TensorFlow ${data.tensorflow_version} | GPU: ${data.gpu_available ? 'Available' : 'CPU Mode'}
+                            </div>
+                        `;
+                        
+                        // Update model parameters
+                        await this.loadModelInfo();
+                    }
+                } catch (error) {
+                    this.apiStatus.innerHTML = `
+                        <div class="error-message">
+                            ❌ API Connection Failed - Make sure the server is running on port 8000
+                        </div>
+                    `;
+                }
+            }
+
+            async loadModelInfo() {
+                try {
+                    const response = await fetch(`${this.apiUrl}/models`);
+                    const models = await response.json();
+                    
+                    // Update model parameters and show which models are loaded
+                    if (models && models.length > 0) {
+                        const unetModel = models.find(m => m.name === 'unet_mini');
+                        const vggModel = models.find(m => m.name === 'vgg16_unet');
+                        
+                        if (unetModel) {
+                            document.getElementById('modelParams').textContent = 
+                                (unetModel.parameters / 1000000).toFixed(1) + 'M';
+                            
+                            // Update model availability info
+                            this.updateModelAvailability(unetModel, vggModel);
+                        }
+                    } else {
+                        this.showModelLoadingIssues();
+                    }
+                } catch (error) {
+                    console.error('Failed to load model info:', error);
+                    this.showModelLoadingIssues();
+                }
+            }
+
+            updateModelAvailability(unetModel, vggModel) {
+                const modelBtns = document.querySelectorAll('.model-btn');
+                modelBtns.forEach(btn => {
+                    const modelName = btn.dataset.model;
+                    if (modelName === 'unet_mini' && unetModel) {
+                        btn.classList.remove('unavailable');
+                        btn.title = `Available - ${(unetModel.parameters / 1000000).toFixed(1)}M params`;
+                        if (unetModel.source && unetModel.source.includes('FALLBACK')) {
+                            btn.innerHTML = `UNet Mini (Fallback) ⚠️`;
+                            btn.title += ' - Using fallback architecture';
+                        }
+                    } else if (modelName === 'vgg16_unet' && vggModel) {
+                        btn.classList.remove('unavailable');
+                        btn.title = `Available - ${(vggModel.parameters / 1000000).toFixed(1)}M params`;
+                        if (vggModel.source && vggModel.source.includes('FALLBACK')) {
+                            btn.innerHTML = `VGG16 UNet (Fallback) ⚠️`;
+                            btn.title += ' - Using fallback architecture';
+                        }
+                    } else {
+                        btn.classList.add('unavailable');
+                        btn.title = `Model not available`;
+                        btn.disabled = true;
+                    }
+                });
+            }
+
+            showModelLoadingIssues() {
+                this.apiStatus.innerHTML += `
+                    <div class="error-message" style="margin-top: 1rem;">
+                        ⚠️ Some models may have loading issues. Check server logs for batch_shape compatibility problems.
+                    </div>
+                `;
+            }
+
+            handleDragOver(e) {
+                e.preventDefault();
+                this.uploadArea.classList.add('dragover');
+            }
+
+            handleDragLeave(e) {
+                e.preventDefault();
+                this.uploadArea.classList.remove('dragover');
+            }
+
+            handleDrop(e) {
+                e.preventDefault();
+                this.uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.processFile(files[0]);
+                }
+            }
+
+            handleFileSelect(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    this.processFile(file);
+                }
+            }
+
+            processFile(file) {
+                if (!file.type.startsWith('image/')) {
+                    this.showError('Please select a valid image file');
+                    return;
+                }
+
+                this.selectedFile = file;
+                this.predictBtn.disabled = false;
+                
+                // Display image
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.imageContainer.innerHTML = `
+                        <img src="${e.target.result}" alt="Uploaded image" id="uploadedImage">
+                    `;
+                    
+                    // Update image size stat
+                    const img = new Image();
+                    img.onload = () => {
+                        document.getElementById('imageSize').textContent = `${img.width}×${img.height}`;
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+
+                this.uploadArea.innerHTML = `
+                    <div class="upload-icon">✅</div>
+                    <p>Image loaded: ${file.name}</p>
+                    <small>${(file.size / 1024 / 1024).toFixed(2)} MB</small>
+                `;
+            }
+
+            selectModel(e) {
+                document.querySelectorAll('.model-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                this.selectedModel = e.target.dataset.model;
+            }
+
+            async runPrediction() {
+                if (!this.selectedFile) return;
+
+                this.predictBtn.disabled = true;
+                this.predictBtn.classList.add('loading');
+                this.predictBtn.textContent = '🔄 Processing...';
+                this.showProgress(true);
+                
+                try {
+                    const formData = new FormData();
+                    formData.append('file', this.selectedFile);
+                    formData.append('model_name', this.selectedModel);
+                    formData.append('alpha', '0.6'); // Transparency for overlay
+
+                    const startTime = performance.now();
+                    
+                    // Simulate progress
+                    this.animateProgress();
+                    
+                    // Get statistics first
+                    const statsResponse = await fetch(`${this.apiUrl}/predict`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!statsResponse.ok) {
+                        throw new Error(`Stats API Error: ${statsResponse.status}`);
+                    }
+
+                    const stats = await statsResponse.json();
+                    
+                    // Get overlay image
+                    const overlayResponse = await fetch(`${this.apiUrl}/predict/overlay`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (!overlayResponse.ok) {
+                        throw new Error(`Overlay API Error: ${overlayResponse.status}`);
+                    }
+
+                    const overlayBlob = await overlayResponse.blob();
+                    const overlayUrl = URL.createObjectURL(overlayBlob);
+                    
+                    // Get pure mask
+                    const maskResponse = await fetch(`${this.apiUrl}/predict/mask`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const endTime = performance.now();
+                    const inferenceTime = Math.round(endTime - startTime);
+
+                    if (!maskResponse.ok) {
+                        throw new Error(`Mask API Error: ${maskResponse.status}`);
+                    }
+
+                    const maskBlob = await maskResponse.blob();
+                    const maskUrl = URL.createObjectURL(maskBlob);
+                    
+                    this.displayResults(stats, overlayUrl, maskUrl, inferenceTime);
+                    
+                } catch (error) {
+                    this.showError(`Prediction failed: ${error.message}`);
+                } finally {
+                    this.predictBtn.disabled = false;
+                    this.predictBtn.classList.remove('loading');
+                    this.predictBtn.textContent = '🚀 Run Segmentation';
+                    this.showProgress(false);
+                }
+            }
+
+            animateProgress() {
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 90) progress = 90;
+                    this.progressFill.style.width = progress + '%';
+                    
+                    if (progress >= 90) {
+                        clearInterval(interval);
+                    }
+                }, 200);
+            }
+
+            displayResults(stats, overlayUrl, maskUrl, inferenceTime) {
+                // Store URLs for view switching
+                this.originalUrl = document.getElementById('uploadedImage').src;
+                this.overlayUrl = overlayUrl;
+                this.maskUrl = maskUrl;
+                this.currentView = 'overlay';
+                // Update stats with real data
+                document.getElementById('inferenceTime').textContent = stats.inference_time_ms.toFixed(1);
+                document.getElementById('confidence').textContent = 
+                    (stats.overall_confidence * 100).toFixed(1) + '%';
+
+                // Display the real segmentation overlay from API
+                this.imageContainer.innerHTML = `
+                    <div style="position: relative;" class="fade-in">
+                        <img src="${overlayUrl}" alt="Segmentation result" id="resultImage" style="max-width: 100%; max-height: 400px; border-radius: 15px;">
+                        <div class="class-legend" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; font-size: 12px;">
+                            ${this.createClassLegend(stats.class_statistics)}
+                        </div>
+                    </div>
+                `;
+                
+                // Store URLs for download and switching
+                this.currentOverlayUrl = overlayUrl;
+                this.currentMaskUrl = maskUrl;
+                
+                // Show overlay controls with default active state
+                this.overlayControls.classList.remove('hidden');
+                document.getElementById('showOverlay').classList.add('active');
+                
+                // Update additional stats
+                this.updateDetailedStats(stats);
+                
+                // Complete progress
+                this.progressFill.style.width = '100%';
+                setTimeout(() => this.showProgress(false), 1000);
+                
+                this.showSuccess('Segmentation completed successfully!');
+            }
+
+            createClassLegend(classStats) {
+                const classColors = {
+                    'road': '#8B4513',      // Brown from training notebooks
+                    'building': '#808080',  // Gray
+                    'object': '#FFD700',    // Gold
+                    'nature': '#228B22',    // Green
+                    'sky': '#87CEEB',       // Sky blue
+                    'person': '#FF69B4',    // Pink
+                    'vehicle': '#DC143C',   // Red
+                    'void': '#000000'       // Black
+                };
+                
+                return Object.entries(classStats)
+                    .filter(([_, data]) => data.percentage > 0.1) // Only show classes with >0.1%
+                    .map(([className, data]) => {
+                        const color = classColors[className] || '#FFFFFF';
+                        return `
+                            <div style="display: flex; align-items: center; margin: 2px 0;">
+                                <div style="width: 12px; height: 12px; background: ${color}; margin-right: 8px; border-radius: 2px;"></div>
+                                <span style="color: white;">${className}: ${data.percentage.toFixed(1)}%</span>
+                            </div>
+                        `;
+                    }).join('');
+            }
+
+            updateDetailedStats(stats) {
+                // Add more detailed statistics
+                const additionalStats = document.createElement('div');
+                additionalStats.className = 'stats-grid fade-in';
+                additionalStats.style.marginTop = '1rem';
+                
+                const totalPixels = Object.values(stats.class_statistics)
+                    .reduce((sum, cls) => sum + cls.pixel_count, 0);
+                
+                additionalStats.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${totalPixels.toLocaleString()}</div>
+                        <div class="stat-label">Total Pixels</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${Object.keys(stats.class_statistics).length}</div>
+                        <div class="stat-label">Classes Detected</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.input_shape.join('×')}</div>
+                        <div class="stat-label">Input Shape</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${stats.model_name.toUpperCase()}</div>
+                        <div class="stat-label">Model Used</div>
+                    </div>
+                `;
+                
+                this.imageContainer.appendChild(additionalStats);
+            }
+
+            switchView(viewType) {
+                const resultImage = document.getElementById('resultImage');
+                if (!resultImage) return;
+                
+                // Update active button
+                document.querySelectorAll('.overlay-btn').forEach(btn => btn.classList.remove('active'));
+                
+                switch(viewType) {
+                    case 'original':
+                        resultImage.src = this.originalUrl;
+                        document.getElementById('showOriginal').classList.add('active');
+                        this.currentView = 'original';
+                        break;
+                    case 'overlay':
+                        resultImage.src = this.overlayUrl;
+                        document.getElementById('showOverlay').classList.add('active');
+                        this.currentView = 'overlay';
+                        break;
+                    case 'mask':
+                        resultImage.src = this.maskUrl;
+                        document.getElementById('showMask').classList.add('active');
+                        this.currentView = 'mask';
+                        break;
+                }
+                
+                // Add transition effect
+                resultImage.style.opacity = '0';
+                setTimeout(() => {
+                    resultImage.style.transition = 'opacity 0.3s ease';
+                    resultImage.style.opacity = '1';
+                }, 50);
+            }
+
+            downloadResult() {
+                let downloadUrl, filename;
+                
+                switch(this.currentView) {
+                    case 'original':
+                        downloadUrl = this.originalUrl;
+                        filename = `original_${Date.now()}.png`;
+                        break;
+                    case 'overlay':
+                        downloadUrl = this.currentOverlayUrl;
+                        filename = `segmentation_overlay_${this.selectedModel}_${Date.now()}.png`;
+                        break;
+                    case 'mask':
+                        downloadUrl = this.currentMaskUrl;
+                        filename = `segmentation_mask_${this.selectedModel}_${Date.now()}.png`;
+                        break;
+                    default:
+                        downloadUrl = this.currentOverlayUrl;
+                        filename = `segmentation_result_${Date.now()}.png`;
+                }
+                
+                if (downloadUrl) {
+                    const link = document.createElement('a');
+                    link.download = filename;
+                    link.href = downloadUrl;
+                    link.click();
+                    this.showSuccess(`${this.currentView} downloaded successfully!`);
+                }
+            }
+
+            showProgress(show) {
+                this.progressBar.classList.toggle('hidden', !show);
+                if (!show) {
+                    this.progressFill.style.width = '0%';
+                }
+            }
+
+            showError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = message;
+                this.imageContainer.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 5000);
+            }
+
+            showSuccess(message) {
+                const successDiv = document.createElement('div');
+                successDiv.className = 'success-message';
+                successDiv.textContent = message;
+                this.imageContainer.appendChild(successDiv);
+                setTimeout(() => successDiv.remove(), 3000);
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new SegmentationInterface();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+# =============================================================================
+# .GITIGNORE - Projet Vision Embarquée Cityscapes
+# =============================================================================
+
+# =============================================================================
+# PYTHON
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# =============================================================================
+# ENVIRONNEMENTS VIRTUELS
+# =============================================================================
+.cityscapes/
+.cityscapes_albumentations/
+.cityscapes_fresh/
+.cityscapes_training/
+backend/.final_tf
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# =============================================================================
+# JUPYTER NOTEBOOKS
+# =============================================================================
+.ipynb_checkpoints/
+*.ipynb
+!notebooks/*.ipynb  
+backend/notebooks/
+
+# =============================================================================
+# DATASET CITYSCAPES (VOLUMINEUX)
+# =============================================================================
+data/leftImg8bit/
+data/gtFine/
+data/disparity/
+data/camera/
+data/vehicle/
+data/*.zip
+data/*.tar.gz
+
+# Garder seulement les métadonnées
+!data/README
+!data/license.txt
+!data/dataset_overview.md
+
+# =============================================================================
+# MODÈLES ENTRAÎNÉS
+# =============================================================================
+models/*.h5
+backend/models/*.keras
+
+
+# =============================================================================
+# RÉSULTATS & OUTPUTS
+# =============================================================================
+results/
+logs/
+runs/
+outputs/predictions/
+outputs/evaluations/
+outputs/exports/
+notebooks/outputs/models/
+notebooks/outputs/mlruns/
+notebooks/outputs/tensorboard/
+notebooks/outputs/logs/
+notebooks/outputs/checkpoints/
+notebooks/2_7_full_pipeline-Copie.py
+notebooks/2_7_full_pipeline.py
+notebooks/2_7_full_pipeline.ipynb
+notebooks/2_7_full_pipeline_backup.py
+
+# Garder les outputs d'analyse
+!notebooks/outputs/
+!notebooks/figures/
+
+# =============================================================================
+# DOCKER & DÉPLOIEMENT
+# =============================================================================
+.dockerignore
+docker-compose.override.yml
+.env.local
+.env.development
+.env.test
+.env.production
+docker/
+
+# =============================================================================
+# CLOUD & SECRETS
+# =============================================================================
+.gcp/
+.aws/
+*.json  
+!package.json
+!notebooks/outputs/*.json  # Garder les résultats d'analyse
+
+
+# Secrets
+.env
+secrets/
+credentials/
+keys/
+*.pem
+*.key
+
+# =============================================================================
+# EDITEURS & IDEs
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+.claude/
+CLAUDE.md
+
+# =============================================================================
+# MONITORING & PROFILING
+# =============================================================================
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+profile_*
+
+# =============================================================================
+# TEMPORARY FILES
+# =============================================================================
+*.tmp
+*.temp
+*.log
+*.out
+*.err
+temp/
+tmp/
+
+# =============================================================================
+# FRONTEND (SI NEXT.JS)
+# =============================================================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.next/
+out/
+build/
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+site/
+
+# =============================================================================
+# SYSTÈME
+# =============================================================================
+.cache/
+.local/
+.config/
+*.pid
+*.seed
+*.pid.lock
+
+# =============================================================================
+# PERFORMANCE & BENCHMARKS
+# =============================================================================
+benchmarks/results/
+*.prof
+*.profile
+
+# =============================================================================
+# EXCEPTIONS - FICHIERS À GARDER
+# =============================================================================
+!.gitkeep
+!README.md
+!backend/static/
+!requirements_colab.txt
+!requirements_ambumentations.txt
+!frontend/segmentation_test_interface.html
+!Dockerfile
+!docker-compose.yml
+
+
+
+# =============================================================================
+# CONFIGURATIONS
+# =============================================================================
+.old_files_and_config/
+backend/.old_and_config/
+notebooks/temp_scripts/
+docs/presentation_slides.md
