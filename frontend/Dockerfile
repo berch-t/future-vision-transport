@@ -8,7 +8,7 @@ FROM nginx:alpine
 RUN apk add --no-cache curl
 
 # Copy static files
-COPY segmentation_test_interface.html /usr/share/nginx/html/index.html
+COPY frontend/segmentation_test_interface.html /usr/share/nginx/html/index.html
 
 # Create custom nginx configuration for Cloud Run
 RUN cat > /etc/nginx/conf.d/default.conf << 'EOF'
