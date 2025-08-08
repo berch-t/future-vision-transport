@@ -70,6 +70,10 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
 import albumentations as A
 
+# Google Cloud Storage pour chargement modèles
+from google.cloud import storage
+from google.cloud.exceptions import NotFound
+
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -108,13 +112,18 @@ CITYSCAPES_8_CLASSES_COLORS = {
     7: {"name": "void", "color": [0, 0, 0], "hex": "#000000"}            # Black (pipeline)
 }
 
-# Chemins modèles (attendus dans répertoire models/)
+# Configuration Google Cloud Storage
+GCS_BUCKET = os.getenv("GCS_BUCKET", "cityscapes_data2")
+MODEL_BASE_PATH = os.getenv("MODEL_BASE_PATH", "gs://cityscapes_data2/models/tf_2_15_compatible/")
+
+# Chemins modèles GCS (production) avec fallback local (développement)
 MODEL_PATHS = {
-    "unet_mini": "models/models_tf_2_15_compatible_unet_mini_tf_2_15_final_20250724_081256.keras",
-    "vgg16_unet": "models/models_tf_2_15_compatible_vgg16_unet_tf_2_15_final_20250724_100515.keras",
-    "unet_efficientnet": "models/unet_efficientnet_tf_2_15_final_20250727_172120.keras",
-    "deeplabv3plus": "models/deeplabv3plus_tf_2_15_final_20250727_155237.keras",
-    "segformer_b0": "models/segformer_b0_tf_2_15_final_20250727_180029.keras"
+    "unet_mini": os.getenv("UNET_MINI_PATH", f"{MODEL_BASE_PATH}unet_mini_tf_2_15_final_20250805_132446.keras"),
+    "vgg16_unet": os.getenv("VGG16_UNET_PATH", f"{MODEL_BASE_PATH}vgg16_unet_tf_2_15_final_20250805_142633.keras")
+    # Autres modèles disponibles si nécessaire
+    # "unet_efficientnet": "models/unet_efficientnet_tf_2_15_final_20250727_172120.keras",
+    # "deeplabv3plus": "models/deeplabv3plus_tf_2_15_final_20250727_155237.keras",
+    # "segformer_b0": "models/segformer_b0_tf_2_15_final_20250727_180029.keras"
 }
 
 # Configuration entrée (identique à l'entraînement)
@@ -354,19 +363,76 @@ class CPUOptimizedModelManager:
             'model_usage': {model: 0 for model in MODEL_PATHS.keys()}
         }
     
-    def _safe_model_load(self, model_path: str, model_name: str) -> Optional[keras.Model]:
+    def _download_model_from_gcs(self, gcs_path: str, local_path: str, model_name: str) -> bool:
         """
-        Chargement sécurisé de modèle pour CPU avec gestion d'erreurs
+        Télécharge un modèle depuis Google Cloud Storage vers le système de fichiers local
         """
         try:
-            logger.info(f"📂 Chargement CPU-safe {model_name} depuis {model_path}")
+            if not gcs_path.startswith("gs://"):
+                # Path local, pas besoin de télécharger
+                return Path(gcs_path).exists()
+            
+            logger.info(f"📥 Téléchargement {model_name} depuis GCS: {gcs_path}")
+            
+            # Parser le chemin GCS
+            gcs_parts = gcs_path.replace("gs://", "").split("/", 1)
+            bucket_name = gcs_parts[0]
+            blob_name = gcs_parts[1]
+            
+            # Créer client GCS et télécharger
+            client = storage.Client()
+            bucket = client.bucket(bucket_name)
+            blob = bucket.blob(blob_name)
+            
+            # Créer le répertoire local si nécessaire
+            Path(local_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            # Télécharger le fichier
+            blob.download_to_filename(local_path)
+            
+            logger.info(f"✅ {model_name} téléchargé avec succès vers {local_path}")
+            return True
+            
+        except NotFound:
+            logger.error(f"❌ Modèle {model_name} introuvable dans GCS: {gcs_path}")
+            return False
+        except Exception as e:
+            logger.error(f"❌ Erreur téléchargement {model_name} depuis GCS: {str(e)}")
+            return False
+
+    def _safe_model_load(self, model_path: str, model_name: str) -> Optional[keras.Model]:
+        """
+        Chargement sécurisé de modèle pour CPU avec gestion d'erreurs et support GCS
+        """
+        try:
+            # Déterminer le chemin local pour le modèle
+            if model_path.startswith("gs://"):
+                local_model_path = f"models/{model_name}_downloaded.keras"
+                
+                # Télécharger depuis GCS si pas déjà présent localement
+                if not Path(local_model_path).exists():
+                    success = self._download_model_from_gcs(model_path, local_model_path, model_name)
+                    if not success:
+                        logger.error(f"❌ Impossible de télécharger {model_name} depuis GCS")
+                        return None
+                
+                actual_model_path = local_model_path
+            else:
+                actual_model_path = model_path
+            
+            logger.info(f"📂 Chargement CPU-safe {model_name} depuis {actual_model_path}")
+            
+            # Vérifier que le fichier existe
+            if not Path(actual_model_path).exists():
+                logger.error(f"❌ Fichier modèle introuvable: {actual_model_path}")
+                return None
             
             # Force garbage collection avant chargement
             gc.collect()
             
             # Chargement avec custom objects et sans compilation
             model = keras.models.load_model(
-                model_path, 
+                actual_model_path, 
                 custom_objects=CUSTOM_OBJECTS,
                 compile=False  # Important: ne pas compiler au chargement
             )
@@ -382,6 +448,7 @@ class CPUOptimizedModelManager:
             logger.info(f"✅ {model_name} chargé avec succès - {model.count_params():,} paramètres")
             logger.info(f"   Input: {model.input_shape}")
             logger.info(f"   Output: {model.output_shape}")
+            logger.info(f"   Source: {'GCS' if model_path.startswith('gs://') else 'Local'}")
             
             return model
             
@@ -610,35 +677,23 @@ class CPUOptimizedModelManager:
         
         for model_name, model_path in MODEL_PATHS.items():
             
-            if Path(model_path).exists():
-                # Essayer de charger le vrai modèle
-                model = self._safe_model_load(model_path, model_name)
-                
-                if model is not None:
-                    self.models[model_name] = model
-                    self.model_info[model_name] = {
-                        'path': model_path,
-                        'parameters': model.count_params(),
-                        'input_shape': model.input_shape,
-                        'output_shape': model.output_shape,
-                        'status': 'loaded',
-                        'type': 'production'
-                    }
-                else:
-                    # Fallback si échec de chargement
-                    logger.warning(f"⚠️ Échec chargement {model_name}, utilisation fallback")
-                    self.models[model_name] = self._create_fallback_model(model_name)
-                    self.model_info[model_name] = {
-                        'path': 'fallback',
-                        'parameters': self.models[model_name].count_params(),
-                        'input_shape': self.models[model_name].input_shape,
-                        'output_shape': self.models[model_name].output_shape,
-                        'status': 'fallback',
-                        'type': 'fallback'
-                    }
+            # Tentative de chargement (GCS ou local)
+            model = self._safe_model_load(model_path, model_name)
+            
+            if model is not None:
+                self.models[model_name] = model
+                self.model_info[model_name] = {
+                    'path': model_path,
+                    'parameters': model.count_params(),
+                    'input_shape': model.input_shape,
+                    'output_shape': model.output_shape,
+                    'status': 'loaded',
+                    'type': 'production',
+                    'source': 'GCS' if model_path.startswith('gs://') else 'Local'
+                }
             else:
-                # Fichier modèle non trouvé, utiliser fallback
-                logger.warning(f"⚠️ Fichier {model_path} non trouvé, utilisation fallback")
+                # Fallback si échec de chargement
+                logger.warning(f"⚠️ Échec chargement {model_name}, utilisation fallback")
                 self.models[model_name] = self._create_fallback_model(model_name)
                 self.model_info[model_name] = {
                     'path': 'fallback',
@@ -646,7 +701,8 @@ class CPUOptimizedModelManager:
                     'input_shape': self.models[model_name].input_shape,
                     'output_shape': self.models[model_name].output_shape,
                     'status': 'fallback',
-                    'type': 'fallback'
+                    'type': 'fallback',
+                    'source': 'Generated'
                 }
         
         self.is_loaded = True

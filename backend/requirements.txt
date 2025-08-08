@@ -2,41 +2,39 @@
 # Production-ready requirements for serving Cityscapes segmentation models
 
 # FastAPI and server
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+fastapi>=0.100.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
 
 # HTTP client for testing
-httpx==0.25.2
+httpx>=0.25.0
 
 # Deep learning and computer vision - Compatible with Colab trained models
-tensorflow==2.18.0  # EXACT version used for training in Google Colab
-albumentations>=1.3.0  # Image augmentation library used in training
-opencv-python>=4.8.0
+tensorflow>=2.15.0
+albumentations>=1.3.0
+opencv-python-headless>=4.8.0  # headless version for server deployment
 pillow>=10.0.0
-numpy>=1.24.0
+numpy>=1.24.0,<2.0.0  # Compatibility constraint
 pandas>=2.0.0
 matplotlib>=3.7.0
 seaborn>=0.12.0
 
-# Google Cloud integration (for model storage)
+# Google Cloud integration (for model storage and deployment)
 google-cloud-storage>=2.10.0
+google-auth>=2.20.0
 
 # Data validation and serialization
-pydantic==2.5.0
+pydantic>=2.5.0
 
-# CORS and middleware
-python-jose[cryptography]==3.3.0  # For JWT if needed later
+# System monitoring and utilities  
+psutil>=5.9.0
 
-# System monitoring and utilities
-psutil==5.9.6
+# Optional: Testing (not needed for production)
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
 
-# Testing (development)
-pytest==7.4.3
-pytest-asyncio==0.21.1
+# Optional: Performance monitoring (commented out)
+# prometheus-fastapi-instrumentator>=6.0.0
 
-# Optional: Performance monitoring
-# prometheus-fastapi-instrumentator==6.1.0
-
-# Optional: Logging and monitoring
-# structlog==23.2.0
+# Optional: Logging and monitoring (commented out)
+# structlog>=23.0.0

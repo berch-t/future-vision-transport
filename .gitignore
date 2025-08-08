@@ -115,6 +115,7 @@ docker/
 *.json  
 !package.json
 !notebooks/outputs/*.json  # Garder les résultats d'analyse
+py2nb-production-4ad285aeab67.json
 
 
 # Secrets
