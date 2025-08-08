@@ -23,8 +23,25 @@ from typing import Optional, Dict, List, Any, Tuple, Union
 from io import BytesIO
 from contextlib import asynccontextmanager
 
+# NUMPY COMPATIBILITY FIX - Supprimer warnings NumPy 1.x vs 2.x
+import warnings
+warnings.filterwarnings("ignore", message=".*numpy.*", category=UserWarning)
+warnings.filterwarnings("ignore", message=".*compilation.*", category=RuntimeWarning)
+warnings.filterwarnings("ignore", message=".*module.*compiled.*", category=RuntimeWarning)
+
 import numpy as np
 import pandas as pd
+
+# Configuration NumPy pour éviter erreurs compatibilité
+try:
+    if hasattr(np, '__version__'):
+        np_version = tuple(map(int, np.__version__.split('.')[:2]))
+        if np_version >= (2, 0):
+            logger.info(f"NumPy 2.x détecté ({np.__version__}) - Configuration de compatibilité")
+        else:
+            logger.info(f"NumPy 1.x détecté ({np.__version__}) - Configuration standard")
+except Exception as e:
+    print(f"Warning: NumPy version check failed: {e}")
 import cv2
 from PIL import Image
 import matplotlib
@@ -79,16 +96,16 @@ if gpu_available:
 else:
     logger.info("✅ Mode CPU pur - Configuration sécurisée")
 
-# Configuration Cityscapes 8-classes (EXACTE du notebook d'entraînement)
+# Configuration Cityscapes 8-classes (EXACTES du pipeline notebook)
 CITYSCAPES_8_CLASSES_COLORS = {
-    0: {"name": "road", "color": [139, 69, 19], "hex": "#8B4513"},
-    1: {"name": "building", "color": [128, 128, 128], "hex": "#808080"},
-    2: {"name": "object", "color": [255, 215, 0], "hex": "#FFD700"},
-    3: {"name": "nature", "color": [34, 139, 34], "hex": "#228B22"},
-    4: {"name": "sky", "color": [135, 206, 235], "hex": "#87CEEB"},
-    5: {"name": "person", "color": [255, 105, 180], "hex": "#FF69B4"},
-    6: {"name": "vehicle", "color": [220, 20, 60], "hex": "#DC143C"},
-    7: {"name": "void", "color": [0, 0, 0], "hex": "#000000"}
+    0: {"name": "road", "color": [139, 69, 19], "hex": "#8B4513"},      # Brown (pipeline)
+    1: {"name": "building", "color": [128, 128, 128], "hex": "#808080"}, # Gray (pipeline)
+    2: {"name": "object", "color": [255, 215, 0], "hex": "#FFD700"},     # Gold (pipeline)
+    3: {"name": "nature", "color": [34, 139, 34], "hex": "#228B22"},     # Green (pipeline)
+    4: {"name": "sky", "color": [135, 206, 235], "hex": "#87CEEB"},      # Sky blue (pipeline)
+    5: {"name": "person", "color": [255, 105, 180], "hex": "#FF69B4"},   # Pink (pipeline)
+    6: {"name": "vehicle", "color": [220, 20, 60], "hex": "#DC143C"},    # Red (pipeline)
+    7: {"name": "void", "color": [0, 0, 0], "hex": "#000000"}            # Black (pipeline)
 }
 
 # Chemins modèles (attendus dans répertoire models/)
@@ -874,13 +891,17 @@ class PredictionResponse(BaseModel):
 def create_colored_mask(class_mask: np.ndarray) -> np.ndarray:
     """
     Crée un masque coloré à partir des prédictions de classes
+    IMPORTANT: Conversion RGB -> BGR pour OpenCV
     """
     h, w = class_mask.shape
     colored_mask = np.zeros((h, w, 3), dtype=np.uint8)
     
     for class_id, class_info in CITYSCAPES_8_CLASSES_COLORS.items():
         mask = class_mask == class_id
-        colored_mask[mask] = class_info["color"]
+        # Conversion RGB -> BGR pour compatibilité OpenCV
+        rgb_color = class_info["color"]
+        bgr_color = [rgb_color[2], rgb_color[1], rgb_color[0]]  # Inverser R et B
+        colored_mask[mask] = bgr_color
     
     return colored_mask
 

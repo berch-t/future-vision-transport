@@ -821,7 +821,7 @@ def create_pipeline_mini_report(stats: Dict[str, Any], prediction_map: np.ndarra
         "recommendations": recommendations,
         "technical_details": {
             "model_used": stats["model_name"],
-            "architecture": self._get_model_architecture_description(stats["model_name"]),
+            "architecture": _get_model_architecture_description(stats["model_name"]),
             "preprocessing": "ImageNet normalization + resize (512x1024)",
             "postprocessing": "Argmax + confidence mapping",
             "fallback_mode": stats.get("fallback_mode", False)
@@ -877,6 +877,17 @@ def create_final_performance_summary(stats_list: List[Dict[str, Any]]) -> Dict[s
         "timestamp": datetime.now().isoformat()
     }
 
+def _get_model_architecture_description(model_name: str) -> str:
+    """Retourne description architecture selon le modèle"""
+    descriptions = {
+        "unet_mini": "UNet Mini (1.9M)",
+        "vgg16_unet": "VGG16 UNet (25.9M)",
+        "unet_efficientnet": "UNet EfficientNet-B0 (5.2M)",
+        "deeplabv3plus": "DeepLabV3+ MobileNetV2 (2.5M)",
+        "segformer_b0": "Segformer-B0 Transformer (3.8M)"
+    }
+    return descriptions.get(model_name, f"Unknown Model ({model_name})")
+
 logger.info("✅ Pipeline de vérification intégré - Mini rapports automatiques disponibles")
 
 # =============================================================================
@@ -924,6 +935,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Configurer fichiers statiques (avec création sécurisée du dossier)
+static_dir = Path("static")
+if not static_dir.exists():
+    try:
+        static_dir.mkdir(exist_ok=True)
+        logger.info("📁 Dossier static créé")
+    except Exception as e:
+        logger.warning(f"⚠️ Impossible de créer dossier static: {e}")
+
+if static_dir.exists():
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+    logger.info("✅ Fichiers statiques configurés")
+else:
+    logger.warning("⚠️ Dossier static non disponible")
 
 # =============================================================================
 # 🔧 ENDPOINTS API (Compatible UI 100%)

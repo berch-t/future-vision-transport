@@ -12,7 +12,7 @@
         }
 
         :root {
-            --primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary: linear-gradient(135deg, #667eea 0%, #003135 100%);
             --secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --success: linear-gradient(135deg, #754ffe 0%, #c300fe 100%);
             --warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
@@ -171,9 +171,11 @@
 
         .model-selector {
             display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
             margin: 1rem 0;
             justify-content: center;
+            align-items: center;
         }
 
         .model-btn {
@@ -455,6 +457,13 @@
             .model-selector {
                 flex-direction: column;
                 align-items: center;
+                gap: 0.5rem;
+            }
+            
+            .model-btn {
+                width: 100%;
+                max-width: 280px;
+                text-align: center;
             }
         }
     </style>
@@ -484,6 +493,9 @@
                 <div class="model-selector">
                     <button class="model-btn active" data-model="unet_mini">UNet Mini (Fast)</button>
                     <button class="model-btn" data-model="vgg16_unet">VGG16 UNet (Accurate)</button>
+                    <button class="model-btn" data-model="unet_efficientnet">UNet EfficientNet (Balanced)</button>
+                    <button class="model-btn" data-model="deeplabv3plus">DeepLabV3+ (Mobile)</button>
+                    <button class="model-btn" data-model="segformer_b0">Segformer-B0 (Transformer)</button>
                 </div>
                 
                 <button class="predict-btn" id="predictBtn" disabled>
@@ -639,14 +651,23 @@
                     if (models && models.length > 0) {
                         const unetModel = models.find(m => m.name === 'unet_mini');
                         const vggModel = models.find(m => m.name === 'vgg16_unet');
+                        const efficientnetModel = models.find(m => m.name === 'unet_efficientnet');
+                        const deeplabModel = models.find(m => m.name === 'deeplabv3plus');
+                        const segformerModel = models.find(m => m.name === 'segformer_b0');
                         
                         if (unetModel) {
                             document.getElementById('modelParams').textContent = 
                                 (unetModel.parameters / 1000000).toFixed(1) + 'M';
-                            
-                            // Update model availability info
-                            this.updateModelAvailability(unetModel, vggModel);
                         }
+                        
+                        // Update model availability info
+                        this.updateModelAvailability({
+                            unet_mini: unetModel,
+                            vgg16_unet: vggModel,
+                            unet_efficientnet: efficientnetModel,
+                            deeplabv3plus: deeplabModel,
+                            segformer_b0: segformerModel
+                        });
                     } else {
                         this.showModelLoadingIssues();
                     }
@@ -656,28 +677,37 @@
                 }
             }
 
-            updateModelAvailability(unetModel, vggModel) {
+            updateModelAvailability(modelMap) {
                 const modelBtns = document.querySelectorAll('.model-btn');
+                const modelLabels = {
+                    'unet_mini': 'UNet Mini (Fast)',
+                    'vgg16_unet': 'VGG16 UNet (Accurate)',
+                    'unet_efficientnet': 'UNet EfficientNet (Balanced)',
+                    'deeplabv3plus': 'DeepLabV3+ (Mobile)',
+                    'segformer_b0': 'Segformer-B0 (Transformer)'
+                };
+                
                 modelBtns.forEach(btn => {
                     const modelName = btn.dataset.model;
-                    if (modelName === 'unet_mini' && unetModel) {
+                    const model = modelMap[modelName];
+                    
+                    if (model) {
                         btn.classList.remove('unavailable');
-                        btn.title = `Available - ${(unetModel.parameters / 1000000).toFixed(1)}M params`;
-                        if (unetModel.source && unetModel.source.includes('FALLBACK')) {
-                            btn.innerHTML = `UNet Mini (Fallback) ⚠️`;
+                        btn.disabled = false;
+                        btn.title = `Available - ${(model.parameters / 1000000).toFixed(1)}M params`;
+                        
+                        // Check if using fallback
+                        if (model.source && model.source.includes('FALLBACK')) {
+                            btn.innerHTML = `${modelLabels[modelName]} (Fallback) ⚠️`;
                             btn.title += ' - Using fallback architecture';
-                        }
-                    } else if (modelName === 'vgg16_unet' && vggModel) {
-                        btn.classList.remove('unavailable');
-                        btn.title = `Available - ${(vggModel.parameters / 1000000).toFixed(1)}M params`;
-                        if (vggModel.source && vggModel.source.includes('FALLBACK')) {
-                            btn.innerHTML = `VGG16 UNet (Fallback) ⚠️`;
-                            btn.title += ' - Using fallback architecture';
+                        } else {
+                            btn.innerHTML = modelLabels[modelName];
                         }
                     } else {
                         btn.classList.add('unavailable');
                         btn.title = `Model not available`;
                         btn.disabled = true;
+                        btn.innerHTML = modelLabels[modelName];
                     }
                 });
             }
@@ -881,13 +911,13 @@
 
             createClassLegend(classStats) {
                 const classColors = {
-                    'road': '#8B4513',      // Brown from training notebooks
-                    'building': '#808080',  // Gray
-                    'object': '#FFD700',    // Gold
-                    'nature': '#228B22',    // Green
-                    'sky': '#87CEEB',       // Sky blue
-                    'person': '#FF69B4',    // Pink
-                    'vehicle': '#DC143C',   // Red
+                    'road': '#804080',      // Purple (Standard Cityscapes)
+                    'building': '#464646',  // Dark gray
+                    'object': '#999999',    // Light gray
+                    'nature': '#6B8E23',    // Olive green
+                    'sky': '#4682B4',       // Steel blue
+                    'person': '#DC143C',    // Crimson
+                    'vehicle': '#00008E',   // Dark blue
                     'void': '#000000'       // Black
                 };
                 
