@@ -111,6 +111,13 @@
 
         .main-grid {
             display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .upload-results-container {
+            display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
             margin-bottom: 2rem;
@@ -261,18 +268,36 @@
             position: relative;
             border-radius: 15px;
             overflow: hidden;
-            margin-bottom: 1rem;
+            margin-bottom: 2rem;
             background: rgba(0, 0, 0, 0.2);
-            min-height: 300px;
+            min-height: 500px;
             display: flex;
             align-items: center;
             justify-content: center;
+            width: 100%;
         }
 
         .image-container img {
             max-width: 100%;
-            max-height: 400px;
+            max-height: 600px;
+            width: auto;
+            height: auto;
             border-radius: 15px;
+            object-fit: contain;
+        }
+
+        .results-display {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .results-display .image-container {
+            min-height: 600px;
+        }
+
+        .results-display .image-container img {
+            max-height: 700px;
         }
 
         .overlay-controls {
@@ -442,7 +467,7 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
-            .main-grid {
+            .upload-results-container {
                 grid-template-columns: 1fr;
             }
             
@@ -465,6 +490,14 @@
                 max-width: 280px;
                 text-align: center;
             }
+            
+            .results-display .image-container {
+                min-height: 400px;
+            }
+            
+            .results-display .image-container img {
+                max-height: 500px;
+            }
         }
     </style>
 </head>
@@ -480,46 +513,57 @@
 
         <div class="main-grid">
             <!-- Upload Section -->
-            <div class="glass-card upload-section">
-                <h2>📸 Upload Image</h2>
-                <div class="upload-area" id="uploadArea">
-                    <div class="upload-icon">☁️</div>
-                    <p>Drag & drop your image here or click to browse</p>
-                    <small>Supports JPG, PNG, WebP</small>
+            <div class="upload-results-container">
+                <div class="glass-card upload-section">
+                    <h2>📸 Upload Image</h2>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">☁️</div>
+                        <p>Drag & drop your image here or click to browse</p>
+                        <small>Supports JPG, PNG, WebP</small>
+                    </div>
+                    <input type="file" id="fileInput" accept="image/*" style="display: none;">
+                    
+                    <h3>🤖 Select Model</h3>
+                    <div class="model-selector">
+                        <button class="model-btn active" data-model="unet_mini">UNet Mini (Fast)</button>
+                        <button class="model-btn" data-model="vgg16_unet">VGG16 UNet (Accurate)</button>
+                        <button class="model-btn" data-model="unet_efficientnet">UNet EfficientNet (Balanced)</button>
+                        <button class="model-btn" data-model="deeplabv3plus">DeepLabV3+ (Mobile)</button>
+                        <button class="model-btn" data-model="segformer_b0">Segformer-B0 (Transformer)</button>
+                    </div>
+                    
+                    <button class="predict-btn" id="predictBtn" disabled>
+                        🚀 Run Segmentation
+                    </button>
+                    
+                    <div class="progress-bar hidden" id="progressBar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
                 </div>
-                <input type="file" id="fileInput" accept="image/*" style="display: none;">
-                
-                <h3>🤖 Select Model</h3>
-                <div class="model-selector">
-                    <button class="model-btn active" data-model="unet_mini">UNet Mini (Fast)</button>
-                    <button class="model-btn" data-model="vgg16_unet">VGG16 UNet (Accurate)</button>
-                    <button class="model-btn" data-model="unet_efficientnet">UNet EfficientNet (Balanced)</button>
-                    <button class="model-btn" data-model="deeplabv3plus">DeepLabV3+ (Mobile)</button>
-                    <button class="model-btn" data-model="segformer_b0">Segformer-B0 (Transformer)</button>
-                </div>
-                
-                <button class="predict-btn" id="predictBtn" disabled>
-                    🚀 Run Segmentation
-                </button>
-                
-                <div class="progress-bar hidden" id="progressBar">
-                    <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+
+                <!-- Quick Preview -->
+                <div class="glass-card results-section">
+                    <h2>📷 Image Preview</h2>
+                    <div class="image-container" id="previewContainer" style="margin-top: 1rem; min-height: 300px;">
+                        <p>Upload an image to see preview</p>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Results Section -->
-            <div class="glass-card results-section">
-                <h2>🎯 Segmentation Results</h2>
-                <div class="image-container" id="imageContainer" style="margin-top: 1rem;">
-                    <p>Upload an image to see segmentation results</p>
-                </div>
-                
-                <div class="overlay-controls hidden" id="overlayControls">
-                    <button class="overlay-btn" id="showOriginal" title="Show Original">🖼️</button>
-                    <button class="overlay-btn" id="showOverlay" title="Show Overlay">🎨</button>
-                    <button class="overlay-btn" id="showMask" title="Show Pure Mask">🎭</button>
-                    <button class="overlay-btn" id="downloadResult" title="Download Result">💾</button>
-                </div>
+        <!-- Results Section - Full Width Below -->
+        <div class="glass-card results-display" id="resultsDisplay" style="display: none;">
+            <h2 style="text-align: center; margin-bottom: 2rem;">🎯 Segmentation Results</h2>
+            
+            <div class="overlay-controls" id="overlayControls" style="position: relative; text-align: center; margin-bottom: 2rem;">
+                <button class="overlay-btn" id="showOriginal" title="Show Original">🖼️ Original</button>
+                <button class="overlay-btn active" id="showOverlay" title="Show Overlay">🎨 Overlay</button>
+                <button class="overlay-btn" id="showMask" title="Show Pure Mask">🎭 Mask</button>
+                <button class="overlay-btn" id="downloadResult" title="Download Result">💾 Download</button>
+            </div>
+            
+            <div class="image-container" id="imageContainer">
+                <p>Processing results...</p>
             </div>
         </div>
 
@@ -573,7 +617,9 @@
                 this.predictBtn = document.getElementById('predictBtn');
                 this.progressBar = document.getElementById('progressBar');
                 this.progressFill = document.getElementById('progressFill');
+                this.previewContainer = document.getElementById('previewContainer');
                 this.imageContainer = document.getElementById('imageContainer');
+                this.resultsDisplay = document.getElementById('resultsDisplay');
                 this.overlayControls = document.getElementById('overlayControls');
                 this.statsGrid = document.getElementById('statsGrid');
                 this.apiStatus = document.getElementById('apiStatus');
@@ -756,11 +802,11 @@
                 this.selectedFile = file;
                 this.predictBtn.disabled = false;
                 
-                // Display image
+                // Display preview image
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    this.imageContainer.innerHTML = `
-                        <img src="${e.target.result}" alt="Uploaded image" id="uploadedImage">
+                    this.previewContainer.innerHTML = `
+                        <img src="${e.target.result}" alt="Uploaded image" id="uploadedImage" style="max-width: 100%; max-height: 280px; object-fit: contain;">
                     `;
                     
                     // Update image size stat
@@ -876,27 +922,49 @@
                 this.overlayUrl = overlayUrl;
                 this.maskUrl = maskUrl;
                 this.currentView = 'overlay';
+                
                 // Update stats with real data
                 document.getElementById('inferenceTime').textContent = stats.inference_time_ms.toFixed(1);
                 document.getElementById('confidence').textContent = 
                     (stats.overall_confidence * 100).toFixed(1) + '%';
 
-                // Display the real segmentation overlay from API
+                // Show the results display section
+                this.resultsDisplay.style.display = 'block';
+                
+                // Display the real segmentation overlay from API in larger container
                 this.imageContainer.innerHTML = `
-                    <div style="position: relative;" class="fade-in">
-                        <img src="${overlayUrl}" alt="Segmentation result" id="resultImage" style="max-width: 100%; max-height: 400px; border-radius: 15px;">
-                        <div class="class-legend" style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.8); padding: 10px; border-radius: 10px; font-size: 12px;">
-                            ${this.createClassLegend(stats.class_statistics)}
-                        </div>
+                    <div style="position: relative; width: 100%;" class="fade-in">
+                        <img src="${overlayUrl}" alt="Segmentation result" id="resultImage" style="max-width: 100%; max-height: 700px; width: auto; height: auto; border-radius: 15px; object-fit: contain;">
                     </div>
                 `;
+                
+                // Create separate legend below the image (no overlay)
+                const legendContainer = document.createElement('div');
+                legendContainer.className = 'class-legend-container';
+                legendContainer.style.cssText = `
+                    background: rgba(0,0,0,0.9); 
+                    padding: 20px; 
+                    border-radius: 15px; 
+                    margin-top: 20px;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 10px;
+                    border: 1px solid rgba(255,255,255,0.2);
+                `;
+                legendContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; margin-bottom: 10px;">
+                        <h3 style="color: white; margin: 0; font-size: 16px;">🎨 Classes Détectées</h3>
+                    </div>
+                    ${this.createClassLegend(stats.class_statistics)}
+                `;
+                
+                this.imageContainer.appendChild(legendContainer);
                 
                 // Store URLs for download and switching
                 this.currentOverlayUrl = overlayUrl;
                 this.currentMaskUrl = maskUrl;
                 
-                // Show overlay controls with default active state
-                this.overlayControls.classList.remove('hidden');
+                // Update overlay controls to be visible and active
                 document.getElementById('showOverlay').classList.add('active');
                 
                 // Update additional stats
@@ -907,18 +975,21 @@
                 setTimeout(() => this.showProgress(false), 1000);
                 
                 this.showSuccess('Segmentation completed successfully!');
+                
+                // Smooth scroll to results
+                this.resultsDisplay.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
 
             createClassLegend(classStats) {
                 const classColors = {
-                    'road': '#804080',      // Purple (Standard Cityscapes)
-                    'building': '#464646',  // Dark gray
-                    'object': '#999999',    // Light gray
-                    'nature': '#6B8E23',    // Olive green
-                    'sky': '#4682B4',       // Steel blue
-                    'person': '#DC143C',    // Crimson
-                    'vehicle': '#00008E',   // Dark blue
-                    'void': '#000000'       // Black
+                    'road': '#8B4513',      // Brown (pipeline exact)
+                    'building': '#808080',  // Gray (pipeline exact)
+                    'object': '#FFD700',    // Gold (pipeline exact)
+                    'nature': '#228B22',    // Green (pipeline exact)
+                    'sky': '#87CEEB',       // Sky blue (pipeline exact)
+                    'person': '#FF69B4',    // Pink (pipeline exact)
+                    'vehicle': '#DC143C',   // Red (pipeline exact)
+                    'void': '#000000'       // Black (pipeline exact)
                 };
                 
                 return Object.entries(classStats)
@@ -926,9 +997,9 @@
                     .map(([className, data]) => {
                         const color = classColors[className] || '#FFFFFF';
                         return `
-                            <div style="display: flex; align-items: center; margin: 2px 0;">
-                                <div style="width: 12px; height: 12px; background: ${color}; margin-right: 8px; border-radius: 2px;"></div>
-                                <span style="color: white;">${className}: ${data.percentage.toFixed(1)}%</span>
+                            <div style="display: flex; align-items: center; margin: 4px 0; font-size: 14px;">
+                                <div style="width: 16px; height: 16px; background: ${color}; margin-right: 10px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.3);"></div>
+                                <span style="color: white; font-weight: 500;">${className}: ${data.percentage.toFixed(1)}%</span>
                             </div>
                         `;
                     }).join('');
