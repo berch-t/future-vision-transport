@@ -1,0 +1,9 @@
+# Google Cloud Build configuration for Python buildpack
+env_variables:
+  GOOGLE_CLOUD_PROJECT: py2nb-production
+  GCS_BUCKET: cityscapes_data2
+  MODEL_BASE_PATH: gs://cityscapes_data2/models/tf_2_15_compatible/
+  UNET_MINI_PATH: gs://cityscapes_data2/models/tf_2_15_compatible/unet_mini_tf_2_15_final_20250805_132446.keras
+  VGG16_UNET_PATH: gs://cityscapes_data2/models/tf_2_15_compatible/vgg16_unet_tf_2_15_final_20250805_142633.keras
+  TF_CPP_MIN_LOG_LEVEL: "3"
+  CUDA_VISIBLE_DEVICES: ""
